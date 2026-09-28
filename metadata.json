@@ -1,0 +1,6 @@
+{
+  "name": "QuakeShield AI",
+  "description": "Public safety and earthquake preparedness platform: risk analysis, early warning alerts, emergency guides, simulation drills, and QuakeGuide AI assistant.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #e2e8f0;
+    background-color: #060913;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom animations for seismic monitoring & warnings */
+@keyframes seismicPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes radarSweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tremorShake {
+  0%, 100% { transform: translate(0, 0); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-3px, 2px); }
+  20%, 40%, 60%, 80% { transform: translate(3px, -2px); }
+}
+
+@keyframes alertFlash {
+  0%, 100% { background-color: rgba(220, 38, 38, 0.15); border-color: rgba(239, 68, 68, 0.4); }
+  50% { background-color: rgba(220, 38, 38, 0.35); border-color: rgba(239, 68, 68, 0.85); }
+}
+
+.seismic-ring {
+  animation: seismicPulse 2.8s cubic-bezier(0.1, 0.7, 0.3, 1) infinite;
+}
+
+.seismic-ring-fast {
+  animation: seismicPulse 1.4s cubic-bezier(0.1, 0.7, 0.3, 1) infinite;
+}
+
+.radar-sweep {
+  animation: radarSweep 4s linear infinite;
+  transform-origin: center center;
+}
+
+.tremor-active {
+  animation: tremorShake 0.4s infinite;
+}
+
+.alert-flash {
+  animation: alertFlash 1.2s infinite ease-in-out;
+}
+
+/* Glassmorphism custom helpers */
+.glass-panel {
+  background: rgba(13, 20, 36, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-elevated {
+  background: rgba(16, 26, 48, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060913;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
