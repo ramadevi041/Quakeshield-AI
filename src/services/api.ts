@@ -187,7 +187,84 @@ const DEFAULT_SHELTERS: Shelter[] = [
   }
 ];
 
+export const DEFAULT_N8N_WEBHOOK_URL =
+  'https://ramadevi04.app.n8n.cloud/webhook/7664a4af-0d3a-4d4d-9d84-e0d21bee02b1/chat';
+
 export const api = {
+  // Ask n8n Chatbot Workflow
+  async askN8nChatbot(message: string, sessionId?: string, customWebhookUrl?: string): Promise<{ output: string; source: string }> {
+    const webhookUrl = customWebhookUrl || DEFAULT_N8N_WEBHOOK_URL;
+    const session =
+      sessionId ||
+      (typeof window !== 'undefined'
+        ? sessionStorage.getItem('quakeshield_n8n_session') || `session-${Date.now().toString(36)}`
+        : 'session-default');
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('quakeshield_n8n_session', session);
+    }
+
+    // 1. Try server proxy endpoint first
+    try {
+      const res = await fetch('/api/n8n/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, sessionId: session, webhookUrl })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.output) {
+          return { output: json.output, source: 'n8n Cloud Webhook Workflow' };
+        }
+      }
+    } catch {
+      // Backend proxy unavailable or offline, attempt direct fetch
+    }
+
+    // 2. Direct client fetch to n8n webhook
+    try {
+      const directRes = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'sendMessage',
+          chatInput: message,
+          sessionId: session
+        })
+      });
+
+      if (directRes.ok) {
+        const data = await directRes.json();
+        let text = '';
+        if (typeof data === 'string') {
+          text = data;
+        } else if (data.output) {
+          text = data.output;
+        } else if (data.text) {
+          text = data.text;
+        } else if (data.message && data.message !== 'Workflow was started') {
+          text = data.message;
+        } else if (Array.isArray(data) && data[0]?.output) {
+          text = data[0].output;
+        } else {
+          text = typeof data === 'object' ? JSON.stringify(data) : String(data);
+        }
+
+        if (text) {
+          return { output: text, source: 'n8n Cloud Webhook (Direct)' };
+        }
+      }
+    } catch (directErr) {
+      console.warn('Direct n8n webhook fetch error, fallbacking:', directErr);
+    }
+
+    // 3. Fallback to built-in askAI
+    const fallback = await this.askAI(message);
+    return { output: fallback.answer, source: 'QuakeGuide Built-in Safety Engine' };
+  },
+
   // Fetch earthquakes (Server API -> direct USGS API fallback -> offline demo data)
   async getEarthquakes(forceDemo = false): Promise<{ data: Earthquake[]; isLive: boolean; source: string; disclaimer?: string }> {
     if (forceDemo) {

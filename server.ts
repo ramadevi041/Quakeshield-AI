@@ -563,6 +563,73 @@ Your goals:
   }
 });
 
+// 6b. POST /api/n8n/chat - n8n Webhook Chatbot Proxy
+app.post('/api/n8n/chat', async (req: Request, res: Response) => {
+  const { message, chatInput, sessionId, webhookUrl } = req.body;
+  const query = message || chatInput || '';
+
+  if (!query) {
+    return res.status(400).json({ error: 'Message or chatInput is required.' });
+  }
+
+  const targetUrl =
+    webhookUrl ||
+    'https://ramadevi04.app.n8n.cloud/webhook/7664a4af-0d3a-4d4d-9d84-e0d21bee02b1/chat';
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    const n8nResponse = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'sendMessage',
+        chatInput: query,
+        sessionId: sessionId || `session-${Date.now().toString(36)}`
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+
+    if (!n8nResponse.ok) {
+      throw new Error(`n8n webhook HTTP ${n8nResponse.status}`);
+    }
+
+    const data: any = await n8nResponse.json();
+    let text = '';
+    if (typeof data === 'string') {
+      text = data;
+    } else if (data.output) {
+      text = data.output;
+    } else if (data.text) {
+      text = data.text;
+    } else if (data.message && data.message !== 'Workflow was started') {
+      text = data.message;
+    } else if (Array.isArray(data) && data[0]?.output) {
+      text = data[0].output;
+    } else {
+      text = typeof data === 'object' ? JSON.stringify(data) : String(data);
+    }
+
+    return res.json({
+      success: true,
+      output: text,
+      source: 'n8n Cloud Webhook Workflow',
+      webhookUrl: targetUrl
+    });
+  } catch (error: any) {
+    console.error('n8n Webhook Proxy Error:', error);
+    return res.status(502).json({
+      success: false,
+      error: error.message || 'Failed to communicate with n8n chatbot webhook.'
+    });
+  }
+});
+
 // 7. POST /api/ai/analytics - AI-Based Seismic Pattern & Hazard Analysis
 app.post('/api/ai/analytics', async (req: Request, res: Response) => {
   const { regionName, historicalContext } = req.body;

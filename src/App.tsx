@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { DisclaimerBanner } from './components/DisclaimerBanner';
 import { Footer } from './components/Footer';
 import { DemoTourModal } from './components/DemoTourModal';
+import { N8nChatWidget } from './components/N8nChatWidget';
 import { LandingView } from './views/LandingView';
 import { RiskCheckView } from './views/RiskCheckView';
 import { MapView } from './views/MapView';
@@ -199,6 +200,9 @@ export default function App() {
         onClose={() => setIsDemoTourOpen(false)}
         onNavigateTab={(tab) => setActiveTab(tab)}
       />
+
+      {/* Persistent Floating n8n AI Chatbot Widget */}
+      <N8nChatWidget />
     </div>
   );
 }
